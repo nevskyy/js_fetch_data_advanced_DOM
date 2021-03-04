@@ -1,17 +1,15 @@
 'use strict';
 
-// write code here
-
 const BASE_URL = 'https://mate-academy.github.io/phone-catalogue-static/api';
 
 const request = (url) => {
   return fetch(`${BASE_URL}${url}`)
     .then(response => {
       if (!response.ok) {
-        Promise.reject(new Error(`${response.status}-${response.statusText}`
-        ));
+        throw new Error(`${response.status}-${response.statusText}`
+        );
       }
-      // console.log(response);
+
       return response.json();
     });
 };
@@ -47,20 +45,19 @@ const getFirstReceivedDetails = () => {
 const getAllSuccessfulDetails = () => {
   return getPhones()
     .then(arr =>
-      Promise.all(arr.map(phone => getDetailsOfPhone(phone.id))));
+      Promise.allSettled(arr.map(phone => getDetailsOfPhone(phone.id))))
+    .then(arr => arr.filter(phone => phone.status === 'fulfilled'))
+    .then(arr => arr.map(phone => phone.value));
 };
 
 getFirstReceivedDetails()
   .then(result => {
-    console.log([result]);
     displayMessage('first-received', 'First Received', [result]);
   })
   .catch(error => console.warn('Error occured:', error));
 
 getAllSuccessfulDetails()
   .then(result => {
-    console.log(result);
     displayMessage('all-successful', 'All Successful', result);
   })
-  .catch(error => console.warn('Error occured:', error))
   .catch(error => console.warn('Error occured:', error));
